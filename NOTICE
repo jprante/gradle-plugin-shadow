@@ -1,0 +1,10 @@
+This work is a fork from 22-Sep-2018 (Version 2.0.4-git)  based on
+
+Gradle-Shadow-Plugin
+https://github.com/johnrengelman/shadow
+Copyright (c) 2013 John Engelman All Rights Reserved.
+
+The copyright headers and @author tags were removed to avoid confusion.
+
+This product is licensed to you under the Apache License, Version 2.0 (the "License").  
+You may not use this product except in compliance with the License.

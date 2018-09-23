@@ -1,0 +1,12 @@
+*.un~
+*.iml
+*.ipr
+*.iws
+.idea
+build
+.gradle
+*.orig
+out
+.gradletasknamecache
+.gradle-test-kit
+classes/

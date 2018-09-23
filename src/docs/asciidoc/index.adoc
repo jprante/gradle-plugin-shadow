@@ -1,0 +1,31 @@
+:src: ../
+:tests: {src}/test/groovy/org/xbib/gradle/plugin/shadow
+:api: api/org/xbib/gradle/plugin/shadow
+:docinfo1:
+ifdef::env-github[]
+:note-caption: :information-source:
+endif::[]
+
+= Gradle Shadow Plugin User Guide & Examples
+
+:revnumber: {project-version}
+
+link:api/index.html[API Docs]
+
+include::00-intro.adoc[]
+
+include::10-configuring.adoc[]
+
+include::20-custom-tasks.adoc[]
+
+include::30-application-plugin.adoc[]
+
+include::40-publishing.adoc[]
+
+include::50-multi-project-builds.adoc[]
+
+include::60-shadowing-plugins.adoc[]
+
+include::90-changes.adoc[]
+
+include::99-about.adoc[]
