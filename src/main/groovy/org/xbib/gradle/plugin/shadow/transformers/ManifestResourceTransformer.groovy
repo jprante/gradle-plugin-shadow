@@ -15,12 +15,10 @@ import java.util.jar.Attributes.Name
  */
 class ManifestResourceTransformer implements Transformer {
 
-    // Configuration
     private String mainClass
 
     private Map<String, Attributes> manifestEntries
 
-    // Fields
     private boolean manifestDiscovered
 
     private Manifest manifest
@@ -36,9 +34,6 @@ class ManifestResourceTransformer implements Transformer {
 
     @Override
     void transform(TransformerContext context) {
-        // We just want to take the first manifest we come across as that's our project's manifest. This is the behavior
-        // now which is situational at best. Right now there is no context passed in with the processing so we cannot
-        // tell what artifact is being processed.
         if (!manifestDiscovered) {
             manifest = new Manifest(context.inputStream)
             manifestDiscovered = true
@@ -50,29 +45,26 @@ class ManifestResourceTransformer implements Transformer {
 
     @Override
     boolean hasTransformedResource() {
-        return true
+        true
     }
 
     @Override
-    void modifyOutputStream(ZipOutputStream os) {
-        // If we didn't find a manifest, then let's create one.
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
         if (manifest == null) {
             manifest = new Manifest()
         }
-
         Attributes attributes = manifest.getMainAttributes()
-
         if (mainClass != null) {
             attributes.put(Name.MAIN_CLASS, mainClass)
         }
-
         if (manifestEntries != null) {
             for (Map.Entry<String, Attributes> entry : manifestEntries.entrySet()) {
                 attributes.put(new Name(entry.getKey()), entry.getValue())
             }
         }
-
-        os.putNextEntry(new ZipEntry(JarFile.MANIFEST_NAME))
+        ZipEntry entry = new ZipEntry(JarFile.MANIFEST_NAME)
+        entry.time = TransformerContext.getEntryTimestamp(preserveFileTimestamps, entry.time)
+        os.putNextEntry(entry)
         manifest.write(os)
     }
 

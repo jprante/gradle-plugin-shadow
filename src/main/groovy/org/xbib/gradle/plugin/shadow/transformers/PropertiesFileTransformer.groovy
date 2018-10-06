@@ -100,7 +100,7 @@ class PropertiesFileTransformer implements Transformer {
 
     Map<String, Map<String, String>> mappings = [:]
 
-    String mergeStrategy = 'first' // latest, append
+    String mergeStrategy = 'first'
 
     String mergeSeparator = ','
 
@@ -109,16 +109,22 @@ class PropertiesFileTransformer implements Transformer {
     @Override
     boolean canTransformResource(FileTreeElement element) {
         def path = element.relativePath.pathString
-        if (mappings.containsKey(path)) return true
+        if (mappings.containsKey(path)) {
+            return true
+        }
         for (key in mappings.keySet()) {
-            if (path =~ /$key/) return true
+            if (path =~ /$key/) {
+                return true
+            }
         }
-
-        if (path in paths) return true
+        if (path in paths) {
+            return true
+        }
         for (p in paths) {
-            if (path =~ /$p/) return true
+            if (path =~ /$p/) {
+                return true
+            }
         }
-
         !mappings && !paths && path.endsWith(PROPERTIES_SUFFIX)
     }
 
@@ -136,11 +142,11 @@ class PropertiesFileTransformer implements Transformer {
                             props.put(key, value)
                             break
                         case 'append':
-                            props.put(key, props.getProperty(key) + mergeSeparatorFor(context.path) + value)
+                            props.put(key, props.getProperty(key as String) + mergeSeparatorFor(context.path) + value)
                             break
                         case 'first':
+                            break
                         default:
-                            // continue
                             break
                     }
                 } else {
@@ -156,9 +162,11 @@ class PropertiesFileTransformer implements Transformer {
     }
 
     @Override
-    void modifyOutputStream(ZipOutputStream os) {
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
         propertiesEntries.each { String path, Properties props ->
-            os.putNextEntry(new ZipEntry(path))
+            ZipEntry entry = new ZipEntry(path)
+            entry.time = TransformerContext.getEntryTimestamp(preserveFileTimestamps, entry.time)
+            os.putNextEntry(entry)
             Utils.copyLarge(toInputStream(props), os)
             os.closeEntry()
         }
@@ -167,7 +175,7 @@ class PropertiesFileTransformer implements Transformer {
     private Properties loadAndTransformKeys(InputStream is) {
         Properties props = new Properties()
         props.load(is)
-        return transformKeys(props)
+        transformKeys(props)
     }
 
     private Properties transformKeys(Properties properties) {
@@ -177,7 +185,7 @@ class PropertiesFileTransformer implements Transformer {
         properties.each { key, value ->
             result.put(keyTransformer.call(key), value)
         }
-        return result
+        result
     }
 
     private String mergeStrategyFor(String path) {
@@ -189,8 +197,7 @@ class PropertiesFileTransformer implements Transformer {
                 return mappings.get(key).mergeStrategy ?: mergeStrategy
             }
         }
-
-        return mergeStrategy
+        mergeStrategy
     }
 
     private String mergeSeparatorFor(String path) {
@@ -202,8 +209,7 @@ class PropertiesFileTransformer implements Transformer {
                 return mappings.get(key).mergeSeparator ?: mergeSeparator
             }
         }
-
-        return mergeSeparator
+        mergeSeparator
     }
 
     private static InputStream toInputStream(Properties props) {

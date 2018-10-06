@@ -1,7 +1,8 @@
+
 plugins {
     id "com.gradle.plugin-publish" version "0.9.10"
     id "io.codearte.nexus-staging" version "0.11.0"
-    id "org.xbib.gradle.plugin.asciidoctor" version "1.6.0.0"
+    id "org.xbib.gradle.plugin.asciidoctor" version "1.6.0.1"
 }
 
 apply plugin: 'java-gradle-plugin'
@@ -11,38 +12,48 @@ apply plugin: 'signing'
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'org.xbib.gradle.plugin.asciidoctor'
 
+task banner {
+    doFirst {
+        printf "Host: %s\nOS: %s %s %s\nJVM: %s %s %s %s\nGradle: %s Groovy: %s Java: %s\n" +
+                "Build: group: ${project.group} name: ${project.name} version: ${project.version}\n",
+                InetAddress.getLocalHost(),
+                System.getProperty("os.name"),
+                System.getProperty("os.arch"),
+                System.getProperty("os.version"),
+                System.getProperty("java.version"),
+                System.getProperty("java.vm.version"),
+                System.getProperty("java.vm.vendor"),
+                System.getProperty("java.vm.name"),
+                gradle.gradleVersion,
+                GroovySystem.getVersion(),
+                JavaVersion.current()
+        if (!JavaVersion.current().java11Compatible) {
+            println "WARNING: no Java 11 found. You will run into problems."
+        }
+    }
+}
+
+tasks.compileJava.dependsOn('banner')
+
 configurations {
     wagon
 }
 
 dependencies {
-    compile gradleApi()
-    compile "org.codehaus.groovy:groovy-all:${project.property('groovy.version')}"
+    compileOnly gradleApi()
+    compileOnly "org.codehaus.groovy:groovy-all:${project.property('groovy.version')}"
     compile "org.ow2.asm:asm:${project.property('asm.version')}"
     compile "org.ow2.asm:asm-commons:${project.property('asm.version')}"
     compile "org.ow2.asm:asm-util:${project.property('asm.version')}"
 
     testCompile gradleTestKit()
+    testCompile "org.codehaus.groovy:groovy-all:${project.property('groovy.version')}"
     testCompile("org.spockframework:spock-core:${project.property('spock.version')}") {
         exclude group: 'org.codehaus.groovy', module: 'groovy-all'
     }
     wagon "org.apache.maven.wagon:wagon-ssh:${project.property('wagon.version')}"
 }
 
-project.tasks.withType(JavaCompile) {
-    if (!options.compilerArgs.contains("-processor")) {
-        options.compilerArgs << '-proc:none'
-    }
-    options.compilerArgs << '--release' << '10'
-}
-
-project.tasks.withType(GroovyCompile) {
-    if (!options.compilerArgs.contains("-processor")) {
-        options.compilerArgs << '-proc:none'
-    }
-    // Gradle 4.10.2 is unable to test Java 11 classes because of Gradle's asm 6.2 dependency
-    options.compilerArgs << '--release' << '10'
-}
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier 'sources'
@@ -61,6 +72,7 @@ task groovydocJar(type: Jar, dependsOn: 'groovydoc') {
 artifacts {
     archives sourcesJar, groovydocJar
 }
+
 
 asciidoctor {
     sourceDir = new File("$rootDir/src/docs/asciidoc")

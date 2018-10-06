@@ -4,8 +4,7 @@ import org.gradle.api.file.FileTreeElement
 import org.xbib.gradle.plugin.shadow.zip.ZipOutputStream
 
 /**
- * A resource processor that prevents the inclusion of an arbitrary
- * resource into the shaded JAR.
+ * A resource processor that prevents the inclusion of an arbitrary resource into the shaded JAR.
  * Modified from org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer
  */
 class DontIncludeResourceTransformer implements Transformer {
@@ -32,7 +31,7 @@ class DontIncludeResourceTransformer implements Transformer {
     }
 
     @Override
-    void modifyOutputStream(ZipOutputStream os) {
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
         // no op
     }
 }

@@ -36,11 +36,14 @@ import org.xbib.gradle.plugin.shadow.zip.ZipEntry
 import org.xbib.gradle.plugin.shadow.zip.ZipFile
 import org.xbib.gradle.plugin.shadow.zip.ZipOutputStream
 
+import java.time.LocalDate
+import java.time.OffsetDateTime
 import java.util.zip.ZipException
 
 class ShadowCopyAction implements CopyAction {
-    private static final long CONSTANT_TIME_FOR_ZIP_ENTRIES =
-            (new GregorianCalendar(1980, 1, 1, 0, 0, 0)).getTimeInMillis()
+
+    static final long CONSTANT_TIME_FOR_ZIP_ENTRIES = LocalDate.of(1980, 1, 1).atStartOfDay()
+                    .toInstant(OffsetDateTime.now().getOffset()).toEpochMilli()
 
     private final Logger log
     private final File zipFile
@@ -80,8 +83,6 @@ class ShadowCopyAction implements CopyAction {
             stream.process(new BaseStreamAction() {
                 @Override
                 void visitFile(FileCopyDetails fileDetails) {
-                    // All project sources are already present, we just need
-                    // to deal with JAR dependencies.
                     if (isArchive(fileDetails)) {
                         unusedTracker.addDependency(fileDetails.file)
                     }
@@ -92,15 +93,8 @@ class ShadowCopyAction implements CopyAction {
             unusedClasses = Collections.emptySet()
         }
 
-        final ZipOutputStream zipOutStr
-
         try {
-            zipOutStr = compressor.createArchiveOutputStream(zipFile)
-        } catch (Exception e) {
-            throw new GradleException("Could not create ZIP '${zipFile.toString()}'", e)
-        }
-
-        try {
+            ZipOutputStream zipOutStr = compressor.createArchiveOutputStream(zipFile)
             withResource(zipOutStr, new Action<ZipOutputStream>() {
                 void execute(ZipOutputStream outputStream) {
                     try {
@@ -120,6 +114,8 @@ class ShadowCopyAction implements CopyAction {
                                 e.cause.message, documentationRegistry.getDslRefForProperty(Zip, "zip64"))
                 )
             }
+        } catch (Exception e) {
+            throw new GradleException("could not create zip '${zipFile.toString()}'", e)
         }
         return WorkResults.didWork(true)
     }
@@ -127,7 +123,7 @@ class ShadowCopyAction implements CopyAction {
     private void processTransformers(ZipOutputStream stream) {
         transformers.each { Transformer transformer ->
             if (transformer.hasTransformedResource()) {
-                transformer.modifyOutputStream(stream)
+                transformer.modifyOutputStream(stream, preserveFileTimestamps)
             }
         }
     }
@@ -146,7 +142,7 @@ class ShadowCopyAction implements CopyAction {
     private static <T extends Closeable> void withResource(T resource, Action<? super T> action) {
         try {
             action.execute(resource)
-        } catch(Throwable t) {
+        } catch (Throwable t) {
             try {
                 resource.close()
             } catch (IOException e) {
@@ -327,13 +323,7 @@ class ShadowCopyAction implements CopyAction {
         private void remapClass(InputStream classInputStream, String path, long lastModified) {
             InputStream is = classInputStream
             ClassReader cr = new ClassReader(is)
-
-            // We don't pass the ClassReader here. This forces the ClassWriter to rebuild the constant pool.
-            // Copying the original constant pool should be avoided because it would keep references
-            // to the original class names. This is not a problem at runtime (because these entries in the
-            // constant pool are never used), but confuses some tools such as Felix' maven-bundle-plugin
-            // that use the constant pool to determine the dependencies of a class.
-            ClassWriter cw = new ClassWriter(0)
+           ClassWriter cw = new ClassWriter(0)
             ClassVisitor cv = new ClassRemapper(cw, remapper)
             try {
                 cr.accept(cv, ClassReader.EXPAND_FRAMES)
@@ -341,11 +331,9 @@ class ShadowCopyAction implements CopyAction {
                 throw new GradleException("error in ASM processing class " + path, ise)
             }
             byte[] renamedClass = cw.toByteArray()
-            // Need to take the .class off for remapping evaluation
             String mappedName = remapper.mapPath(path)
             InputStream bis = new ByteArrayInputStream(renamedClass)
             try {
-                // Now we put it back on so the class file is written out with the right extension.
                 ZipEntry archiveEntry = new ZipEntry(mappedName + ".class")
                 archiveEntry.setTime(getArchiveTimeFor(lastModified))
                 zipOutStr.putNextEntry(archiveEntry)
@@ -377,7 +365,6 @@ class ShadowCopyAction implements CopyAction {
         @Override
         protected void visitDir(FileCopyDetails dirDetails) {
             try {
-                // Trailing slash in name indicates that entry is a directory
                 String path = dirDetails.relativePath.pathString + '/'
                 ZipEntry archiveEntry = new ZipEntry(path)
                 archiveEntry.setTime(getArchiveTimeFor(dirDetails.lastModified))
@@ -440,7 +427,6 @@ class ShadowCopyAction implements CopyAction {
             if (!segments || segments.length == 1) {
                 return null
             } else {
-                //Parent is always a directory so add / to the end of the path
                 String path = segments[0..-2].join('/') + '/'
                 return new RelativeArchivePath(setArchiveTimes(new ZipEntry(path)), null)
             }

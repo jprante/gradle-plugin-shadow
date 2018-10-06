@@ -5,7 +5,7 @@ import org.xbib.gradle.plugin.shadow.zip.ZipOutputStream
 
 /**
  * Prevents duplicate copies of the license
- * Modified from org.apache.maven.plugins.shade.resouce.ApacheLicenseResourceTransformer
+ * Modified from org.apache.maven.plugins.shade.resouce.ApacheLicenseResourceTransformer.
  */
 class ApacheLicenseResourceTransformer implements Transformer {
 
@@ -30,6 +30,6 @@ class ApacheLicenseResourceTransformer implements Transformer {
     }
 
     @Override
-    void modifyOutputStream(ZipOutputStream os) {
+    void modifyOutputStream(ZipOutputStream jos, boolean preserveFileTimestamps) {
     }
 }

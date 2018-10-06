@@ -4,7 +4,7 @@ import org.gradle.api.file.FileTreeElement
 import org.xbib.gradle.plugin.shadow.zip.ZipOutputStream
 
 /**
- * Modified from org.apache.maven.plugins.shade.resource.ResourceTransformer
+ * Modified from org.apache.maven.plugins.shade.resource.ResourceTransformer.
  */
 interface Transformer {
 
@@ -14,5 +14,5 @@ interface Transformer {
 
     boolean hasTransformedResource()
 
-    void modifyOutputStream(ZipOutputStream jos)
+    void modifyOutputStream(ZipOutputStream jos, boolean preserveFileTimestamps)
 }

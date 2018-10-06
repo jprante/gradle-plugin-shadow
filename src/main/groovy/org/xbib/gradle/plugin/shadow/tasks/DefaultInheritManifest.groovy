@@ -1,9 +1,11 @@
 package org.xbib.gradle.plugin.shadow.tasks
 
+import org.gradle.api.Action
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.java.archives.Attributes
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.ManifestException
+import org.gradle.api.java.archives.ManifestMergeSpec
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.java.archives.internal.DefaultManifestMergeSpec
 import org.gradle.util.ConfigureUtil
@@ -23,7 +25,7 @@ class DefaultInheritManifest implements InheritManifest {
 
     InheritManifest inheritFrom(Object... inheritPaths) {
         inheritFrom(inheritPaths, null)
-        return this
+        this
     }
 
     InheritManifest inheritFrom(Object inheritPaths, Closure closure) {
@@ -31,61 +33,67 @@ class DefaultInheritManifest implements InheritManifest {
         mergeSpec.from(inheritPaths)
         inheritMergeSpecs.add(mergeSpec)
         ConfigureUtil.configure(closure, mergeSpec)
-        return this
+        this
     }
 
     @Override
     Attributes getAttributes() {
-        return internalManifest.getAttributes()
+        internalManifest.getAttributes()
     }
 
     @Override
     Map<String, Attributes> getSections() {
-        return internalManifest.getSections()
+        internalManifest.getSections()
     }
 
     @Override
     Manifest attributes(Map<String, ?> map) throws ManifestException {
         internalManifest.attributes(map)
-        return this
+        this
     }
 
     @Override
     Manifest attributes(Map<String, ?> map, String s) throws ManifestException {
         internalManifest.attributes(map, s)
-        return this
+        this
     }
 
     @Override
-    public DefaultManifest getEffectiveManifest() {
+    DefaultManifest getEffectiveManifest() {
         DefaultManifest base = new DefaultManifest(fileResolver)
         inheritMergeSpecs.each {
             base = it.merge(base, fileResolver)
         }
         base.from internalManifest
-        return base.getEffectiveManifest()
+        base.getEffectiveManifest()
     }
 
     Manifest writeTo(Writer writer) {
         this.getEffectiveManifest().writeTo((Object) writer)
-        return this
+        this
     }
 
     @Override
     Manifest writeTo(Object o) {
         this.getEffectiveManifest().writeTo(o)
-        return this
+        this
     }
 
     @Override
     Manifest from(Object... objects) {
         internalManifest.from(objects)
-        return this
+        this
     }
 
     @Override
     Manifest from(Object o, Closure<?> closure) {
         internalManifest.from(o, closure)
-        return this
+        this
+    }
+
+    @Override
+    Manifest from(Object o, Action<ManifestMergeSpec> action) {
+        internalManifest.from(o, action)
+        this
     }
 }

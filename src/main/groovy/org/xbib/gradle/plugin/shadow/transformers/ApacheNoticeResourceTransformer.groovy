@@ -140,8 +140,10 @@ class ApacheNoticeResourceTransformer implements Transformer {
     }
 
     @Override
-    void modifyOutputStream(ZipOutputStream os) {
-        os.putNextEntry(new ZipEntry(NOTICE_PATH))
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
+        ZipEntry zipEntry = new ZipEntry(NOTICE_PATH)
+        zipEntry.time = TransformerContext.getEntryTimestamp(preserveFileTimestamps, zipEntry.time)
+        os.putNextEntry(zipEntry)
 
         Writer pow
         if (encoding != null && !encoding.isEmpty()) {

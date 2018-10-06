@@ -1,16 +1,14 @@
 package org.xbib.gradle.plugin.shadow
 
+import org.gradle.util.GradleVersion
 import org.xbib.gradle.plugin.shadow.tasks.ShadowJar
 import org.xbib.gradle.plugin.shadow.util.PluginSpecification
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-import spock.lang.Ignore
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.util.jar.Attributes
 import java.util.jar.JarFile
@@ -51,42 +49,6 @@ class ShadowPluginSpec extends PluginSpecification {
         assert shadowConfig
         shadowConfig.artifacts.file.contains(shadow.archivePath)
 
-    }
-
-    @Unroll
-    def 'Compatible with Gradle #version'() {
-        given:
-        GradleRunner versionRunner = runner
-                .withGradleVersion(version)
-                .withArguments('--stacktrace')
-                .withDebug(true)
-
-
-        File one = buildJar('one.jar').insertFile('META-INF/services/shadow.Shadow',
-                'one # NOTE: No newline terminates this line/file').write()
-
-        repo.module('shadow', 'two', '1.0').insertFile('META-INF/services/shadow.Shadow',
-                'two # NOTE: No newline terminates this line/file').publish()
-
-        buildFile << """
-            dependencies {
-              compile 'junit:junit:3.8.2'
-              compile files('${escapedPath(one)}')
-            }
-
-            shadowJar {
-               mergeServiceFiles()
-            }
-        """.stripIndent()
-
-        when:
-        versionRunner.withArguments('shadowJar', '--stacktrace').build()
-
-        then:
-        assert output.exists()
-
-        where:
-        version << ['4.10']
     }
 
     def 'shadow copy'() {
@@ -468,7 +430,7 @@ class ShadowPluginSpec extends PluginSpecification {
     def "include java-library configurations by default"() {
         given:
         GradleRunner versionRunner = runner
-                .withGradleVersion('4.10')
+                .withGradleVersion(GradleVersion.current().version)
                 .withArguments('--stacktrace')
                 .withDebug(true)
 

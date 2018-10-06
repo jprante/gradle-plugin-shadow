@@ -106,7 +106,7 @@ class Clazzpath {
             clazz.addClazzpathUnit(unit)
             clazzes.put(clazzName, clazz)
             unitClazzes.put(clazzName, clazz)
-            DependenciesClassAdapter dependenciesClassAdapter = new DependenciesClassAdapter()
+            DependenciesClassRemapper dependenciesClassAdapter = new DependenciesClassRemapper()
             InputStream inputStream = resource.getInputStream()
             try {
                 new ClassReader(inputStream.readAllBytes()).accept(dependenciesClassAdapter, ClassReader.EXPAND_FRAMES | ClassReader.SKIP_DEBUG)

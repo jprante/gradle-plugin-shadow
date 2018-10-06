@@ -7,7 +7,7 @@ import org.xbib.gradle.plugin.shadow.zip.ZipOutputStream
 
 /**
  * A resource processor that appends content for a resource, separated by a newline.
- * Modified from org.apache.maven.plugins.shade.resource.AppendingTransformer
+ * Modified from org.apache.maven.plugins.shade.resource.AppendingTransformer.
  */
 class AppendingTransformer implements Transformer {
     String resource
@@ -33,8 +33,10 @@ class AppendingTransformer implements Transformer {
     }
 
     @Override
-    void modifyOutputStream(ZipOutputStream os) {
-        os.putNextEntry(new ZipEntry(resource))
+    void modifyOutputStream(ZipOutputStream os, boolean preserveFileTimestamps) {
+        ZipEntry entry = new ZipEntry(resource)
+        entry.time = TransformerContext.getEntryTimestamp(preserveFileTimestamps, entry.time)
+        os.putNextEntry(entry)
         Utils.copyLarge(new ByteArrayInputStream(data.toByteArray()), os)
         data.reset()
     }

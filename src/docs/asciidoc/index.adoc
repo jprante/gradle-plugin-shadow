@@ -10,6 +10,11 @@ endif::[]
 
 :revnumber: {project-version}
 
+NOTE: This documentation was taken from the original Shadow Plugin and is copyrighted by John R. Engelman.
+References to older original Shadow Plugin versions have been removed for consistency.
+The references to the application mode (runShadow) are no longer supported and have been removed.
+To create application images, use Java Platform Module System, especially the `jlink` tool.
+
 link:api/index.html[API Docs]
 
 include::00-intro.adoc[]
@@ -18,14 +23,10 @@ include::10-configuring.adoc[]
 
 include::20-custom-tasks.adoc[]
 
-include::30-application-plugin.adoc[]
-
 include::40-publishing.adoc[]
 
 include::50-multi-project-builds.adoc[]
 
 include::60-shadowing-plugins.adoc[]
-
-include::90-changes.adoc[]
 
 include::99-about.adoc[]

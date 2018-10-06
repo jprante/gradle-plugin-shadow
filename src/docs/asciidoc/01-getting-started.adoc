@@ -11,8 +11,8 @@ buildscript {
     }
 }
 
-apply plugin: 'org.xbib.gradle.plugin.shadow'
 apply plugin: 'java'
+apply plugin: 'org.xbib.gradle.plugin.shadow'
 ----
 
 Alternatively, the Gradle Plugin syntax can be used:
@@ -20,8 +20,8 @@ Alternatively, the Gradle Plugin syntax can be used:
 [source,groovy,subs="+attributes"]
 ----
 plugins {
-  id 'org.xbib.gradle.plugin.shadow' version '{project-version}'
   id 'java'
+  id 'org.xbib.gradle.plugin.shadow' version '{project-version}'
 }
 ----
 
@@ -57,7 +57,7 @@ following behavior:
 
 === Shadowing Gradle Plugins
 
-Starting with v2.0.0, Shadow is capable of automatically configuring package relocation for your dependencies.
+Shadow is capable of automatically configuring package relocation for your dependencies.
 This is useful especially when building Gradle plugins where you want your dependencies to not conflict with versions
 provided by the Gradle runtime.
 
@@ -68,11 +68,11 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:{project-version}'
+        classpath 'org.xbib.gradle.plugin:shadow:{project-version}'
     }
 }
 
-apply plugin: 'com.github.johnrengelman.plugin-shadow'
+apply plugin: 'org.xbib.gradle.plugin.shadow'
 apply plugin: 'java'
 ----
 
@@ -81,8 +81,8 @@ Alternatively, the Gradle Plugin syntax can be used:
 [source,groovy,subs="+attributes"]
 ----
 plugins {
-  id 'com.github.johnrengelman.plugin-shadow' version '{project-version}'
   id 'java'
+  id 'org.xbib.gradle.plugin.plugin-shadow' version '{project-version}'
 }
 ----
 
@@ -90,7 +90,7 @@ Applying the `plugin-shadow` plugin is the same as applying the standard `shadow
 of the `configureRelocationShadowJar` task.
 This task runs before the `shadowJar` task and scans the packages present in the dependencies that will be merged into
 the final jar and automatically configures relocation for them.
-By default the tasks relocates all packages to the `shadow.` prefix. For example `org.jdom2.JDOMException` becomes
-`shadow.org.jdom2.JDOMException`
+By default the tasks relocates all packages to the `shadow.` prefix.
+For example `org.jdom2.JDOMException` becomes `shadow.org.jdom2.JDOMException`
 
 For more details see the sectinon <<Using Shadow to Package Gradle Plugins>>

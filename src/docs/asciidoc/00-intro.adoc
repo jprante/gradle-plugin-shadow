@@ -9,31 +9,11 @@ into the output jar without incurring the I/O overhead of expanding the jars to 
 
 === Benefits of Shadow
 
-Shadowing a project output has 2 major use cases:
+Shadowing a project output has a major use case:
 
-. Creating an __executable__ JAR distribution
 . Bundling and relocating common dependencies in libraries to avoid classpath conflicts
 
-==== Executable Distributions
-
-Executable distribution is the main use case for __application__ developers.
-The goal of an executable distribution is a single file that can be deployed and executed/run in the runtime
-environment.
-In the case of Shadow, this is a single __uber__ or __fat__ JAR.
-The JAR file contains all the application code and dependent libraries to execute (not including the standard JVM
-libraries).
-The shadow JAR does **not** include the JRE itself.
-It must be available on the target system.
-
-Executable JARs contain a JAR MANIFEST that specifies the application Main Class.
-This allows the application to be started with a single command:
-
-[source, bash, subs="verbatim,attributes"]
-----
-$ java -jar application-shadow.jar
-----
-
-==== Library Bundling
+==== Bundling
 
 Dependency bundling and relocation is the main use case for __library__ authors.
 The goal of a bundled library is to create a pre-packaged dependency for other libraries or applications to utilize.

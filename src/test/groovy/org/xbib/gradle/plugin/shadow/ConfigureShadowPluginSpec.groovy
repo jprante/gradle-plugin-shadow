@@ -2,14 +2,17 @@ package org.xbib.gradle.plugin.shadow
 
 import org.xbib.gradle.plugin.shadow.util.PluginSpecification
 
-class PluginShadowPluginSpec extends PluginSpecification {
+class ConfigureShadowPluginSpec extends PluginSpecification {
 
     def "auto relocate plugin dependencies"() {
         given:
-        buildFile.text = buildFile.text.replace('org.xbib.gradle.plugin.shadow', 'org.xbib.gradle.plugin.plugin-shadow')
         buildFile << """
-            dependencies {
+            task relocateShadowJar(type: org.xbib.gradle.plugin.shadow.tasks.ConfigureShadowRelocation) {
+                target = tasks.shadowJar
+            }
+            tasks.shadowJar.dependsOn tasks.relocateShadowJar
 
+            dependencies {
                compile 'junit:junit:3.8.2'
             }
         """.stripIndent()
@@ -17,7 +20,6 @@ class PluginShadowPluginSpec extends PluginSpecification {
         when:
         runner.withArguments('shadowJar', '-s').build()
 
-        then:
         then:
         contains(output, [
                 'META-INF/MANIFEST.MF',

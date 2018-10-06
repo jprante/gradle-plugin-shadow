@@ -21,7 +21,7 @@ class DependencyUtils {
                     continue
                 }
                 if (entry.getName().endsWith('.class')) {
-                    DependenciesClassAdapter dependenciesClassAdapter = new DependenciesClassAdapter()
+                    DependenciesClassRemapper dependenciesClassAdapter = new DependenciesClassRemapper()
                     new ClassReader(inputStream.readAllBytes()).accept(dependenciesClassAdapter, 0)
                     dependencies.addAll(dependenciesClassAdapter.getDependencies())
                 } else {
@@ -33,7 +33,7 @@ class DependencyUtils {
     }
 
     static Collection<String> getDependenciesOfClass(InputStream is) throws IOException {
-        final DependenciesClassAdapter dependenciesClassAdapter = new DependenciesClassAdapter()
+        final DependenciesClassRemapper dependenciesClassAdapter = new DependenciesClassRemapper()
         new ClassReader(is.readAllBytes()).accept(dependenciesClassAdapter, ClassReader.EXPAND_FRAMES)
         dependenciesClassAdapter.getDependencies()
     }

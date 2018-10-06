@@ -10,11 +10,11 @@ import org.objectweb.asm.TypePath
 import org.objectweb.asm.commons.ClassRemapper
 import org.objectweb.asm.commons.Remapper
 
-class DependenciesClassAdapter extends ClassRemapper {
+class DependenciesClassRemapper extends ClassRemapper {
 
     private static final EmptyVisitor ev = new EmptyVisitor()
 
-    DependenciesClassAdapter() {
+    DependenciesClassRemapper() {
         super(ev, new CollectingRemapper())
     }
 
@@ -26,15 +26,15 @@ class DependenciesClassAdapter extends ClassRemapper {
         Set<String> classes = new HashSet<String>()
 
         @Override
-        String map(String pClassName) {
-            classes.add(pClassName.replace('/', '.'))
-            pClassName
+        String map(String className) {
+            classes.add(className.replace('/', '.'))
+            className
         }
     }
 
     static class EmptyVisitor extends ClassVisitor {
 
-        private static final AnnotationVisitor av = new AnnotationVisitor(Opcodes.ASM6) {
+        private static final AnnotationVisitor av = new AnnotationVisitor(Opcodes.ASM7) {
             @Override
             AnnotationVisitor visitAnnotation(String name, String desc) {
                 this
@@ -46,7 +46,7 @@ class DependenciesClassAdapter extends ClassRemapper {
             }
         };
 
-        private static final MethodVisitor mv = new MethodVisitor(Opcodes.ASM6) {
+        private static final MethodVisitor mv = new MethodVisitor(Opcodes.ASM7) {
             @Override
             AnnotationVisitor visitAnnotationDefault() {
                 av
@@ -85,7 +85,7 @@ class DependenciesClassAdapter extends ClassRemapper {
             }
         };
 
-        private static final FieldVisitor fieldVisitor = new FieldVisitor(Opcodes.ASM6) {
+        private static final FieldVisitor fieldVisitor = new FieldVisitor(Opcodes.ASM7) {
             @Override
             AnnotationVisitor visitAnnotation(String desc, boolean visible) {
                 av
@@ -97,7 +97,7 @@ class DependenciesClassAdapter extends ClassRemapper {
         };
 
         EmptyVisitor() {
-            super(Opcodes.ASM6);
+            super(Opcodes.ASM7);
         }
 
         @Override
