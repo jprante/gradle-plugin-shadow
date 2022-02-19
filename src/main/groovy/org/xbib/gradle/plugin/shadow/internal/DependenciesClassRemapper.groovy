@@ -12,10 +12,16 @@ import org.objectweb.asm.commons.Remapper
 
 class DependenciesClassRemapper extends ClassRemapper {
 
-    private static final EmptyVisitor ev = new EmptyVisitor()
+    private static final AnnotationVisitor annotationVisitor = new MyAnnotationVisitor()
+
+    private static final MethodVisitor methodVisitor = new MyMethodVisitor()
+
+    private static final FieldVisitor fieldVisitor = new MyFieldVisitor()
+
+    private static final ClassVisitor classVisitor = new MyClassVisitor()
 
     DependenciesClassRemapper() {
-        super(ev, new CollectingRemapper())
+        super(classVisitor, new CollectingRemapper())
     }
 
     Set<String> getDependencies() {
@@ -32,77 +38,92 @@ class DependenciesClassRemapper extends ClassRemapper {
         }
     }
 
-    static class EmptyVisitor extends ClassVisitor {
+    private static class MyAnnotationVisitor extends AnnotationVisitor {
 
-        private static final AnnotationVisitor av = new AnnotationVisitor(Opcodes.ASM7) {
-            @Override
-            AnnotationVisitor visitAnnotation(String name, String desc) {
-                this
-            }
+        MyAnnotationVisitor() {
+            super(Opcodes.ASM7)
+        }
 
-            @Override
-            AnnotationVisitor visitArray(String name) {
-                this
-            }
-        };
+        @Override
+        AnnotationVisitor visitAnnotation(String name, String desc) {
+            this
+        }
 
-        private static final MethodVisitor mv = new MethodVisitor(Opcodes.ASM7) {
-            @Override
-            AnnotationVisitor visitAnnotationDefault() {
-                av
-            }
+        @Override
+        AnnotationVisitor visitArray(String name) {
+            this
+        }
+    }
 
-            @Override
-            AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                av
-            }
+    private static class MyMethodVisitor extends MethodVisitor {
 
-            @Override
-            AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
-                av
-            }
+        MyMethodVisitor() {
+            super(Opcodes.ASM7)
+        }
 
-            @Override
-            AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-                av
-            }
+        @Override
+        AnnotationVisitor visitAnnotationDefault() {
+            annotationVisitor
+        }
 
-            @Override
-            AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start,
-                                                                   Label[] end, int[] index, String descriptor,
-                                                                   boolean visible) {
-                av
-            }
+        @Override
+        AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            annotationVisitor
+        }
 
-            @Override
-            AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible ) {
-                av
-            }
+        @Override
+        AnnotationVisitor visitParameterAnnotation(int parameter, String desc, boolean visible) {
+            annotationVisitor
+        }
 
-            @Override
-            AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible ) {
-                av
-            }
-        };
+        @Override
+        AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            annotationVisitor
+        }
 
-        private static final FieldVisitor fieldVisitor = new FieldVisitor(Opcodes.ASM7) {
-            @Override
-            AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-                av
-            }
-            @Override
-            AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-                av
-            }
-        };
+        @Override
+        AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start,
+                                                       Label[] end, int[] index, String descriptor,
+                                                       boolean visible) {
+            annotationVisitor
+        }
 
-        EmptyVisitor() {
+        @Override
+        AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible ) {
+            annotationVisitor
+        }
+
+        @Override
+        AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible ) {
+            annotationVisitor
+        }
+    }
+
+    private static class MyFieldVisitor extends FieldVisitor {
+
+        MyFieldVisitor() {
+            super(Opcodes.ASM7)
+        }
+
+        @Override
+        AnnotationVisitor visitAnnotation(String desc, boolean visible) {
+            annotationVisitor
+        }
+        @Override
+        AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+            annotationVisitor
+        }
+    }
+
+    private static class MyClassVisitor extends ClassVisitor {
+
+        MyClassVisitor() {
             super(Opcodes.ASM7);
         }
 
         @Override
         AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-            av
+            annotationVisitor
         }
 
         @Override
@@ -112,12 +133,12 @@ class DependenciesClassRemapper extends ClassRemapper {
 
         @Override
         MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-            mv
+            methodVisitor
         }
 
         @Override
         AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible ) {
-            av
+            annotationVisitor
         }
     }
 }

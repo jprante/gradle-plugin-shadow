@@ -1,5 +1,6 @@
 package org.xbib.gradle.plugin.shadow.zip;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,14 +37,10 @@ public class ExtraFieldUtils {
      */
     public static void register(Class<?> c) {
         try {
-            ZipExtraField ze = (ZipExtraField) c.newInstance();
+            ZipExtraField ze = (ZipExtraField) c.getDeclaredConstructor().newInstance();
             implementations.put(ze.getHeaderId(), c);
-        } catch (ClassCastException cc) {
-            throw new RuntimeException(c + " doesn\'t implement ZipExtraField"); //NOSONAR
-        } catch (InstantiationException ie) {
-            throw new RuntimeException(c + " is not a concrete class"); //NOSONAR
-        } catch (IllegalAccessException ie) {
-            throw new RuntimeException(c + "\'s no-arg constructor is not public"); //NOSONAR
+        } catch (ClassCastException | InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw new IllegalStateException("unable to initialize zip extra field implementation");
         }
     }
 
@@ -56,10 +53,10 @@ public class ExtraFieldUtils {
      * @exception IllegalAccessException if not allowed to instantiate the class
      */
     public static ZipExtraField createExtraField(ZipShort headerId)
-        throws InstantiationException, IllegalAccessException {
+            throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
         Class<?> c = implementations.get(headerId);
         if (c != null) {
-            return (ZipExtraField) c.newInstance();
+            return (ZipExtraField) c.getDeclaredConstructor().newInstance();
         }
         UnrecognizedExtraField u = new UnrecognizedExtraField();
         u.setHeaderId(headerId);
@@ -147,7 +144,7 @@ public class ExtraFieldUtils {
                         .parseFromCentralDirectoryData(data, start + WORD, length);
                 }
                 v.add(ze);
-            } catch (InstantiationException | IllegalAccessException ie) {
+            } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException ie) {
                 throw new ZipException(ie.getMessage());
             }
             start += (length + WORD);

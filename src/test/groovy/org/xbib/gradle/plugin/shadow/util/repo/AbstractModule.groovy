@@ -1,7 +1,10 @@
 package org.xbib.gradle.plugin.shadow.util.repo
 
+import org.gradle.internal.UncheckedException
 import org.xbib.gradle.plugin.shadow.util.file.TestFile
-import org.gradle.internal.hash.HashUtil
+
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
 
 
 abstract class AbstractModule {
@@ -48,34 +51,75 @@ abstract class AbstractModule {
 
     protected abstract onPublish(TestFile file)
 
-    TestFile getSha1File(TestFile file) {
+    static TestFile getSha1File(TestFile file) {
         getHashFile(file, "sha1")
     }
 
-    TestFile sha1File(TestFile file) {
+    static TestFile sha1File(TestFile file) {
         hashFile(file, "sha1", 40)
     }
 
-    TestFile getMd5File(TestFile file) {
+    static TestFile getMd5File(TestFile file) {
         getHashFile(file, "md5")
     }
 
-    TestFile md5File(TestFile file) {
+    static TestFile md5File(TestFile file) {
         hashFile(file, "md5", 32)
     }
 
-    private TestFile hashFile(TestFile file, String algorithm, int len) {
+    private static TestFile hashFile(TestFile file, String algorithm, int len) {
         def hashFile = getHashFile(file, algorithm)
         def hash = getHash(file, algorithm)
         hashFile.text = String.format("%0${len}x", hash)
         return hashFile
     }
 
-    private TestFile getHashFile(TestFile file, String algorithm) {
+    private static TestFile getHashFile(TestFile file, String algorithm) {
         file.parentFile.file("${file.name}.${algorithm}")
     }
 
-    protected BigInteger getHash(TestFile file, String algorithm) {
-        HashUtil.createHash(file, algorithm.toUpperCase()).asBigInteger()
+    protected static BigInteger getHash(TestFile file, String algorithm) {
+        createHash(file, algorithm.toUpperCase())
+    }
+
+    static BigInteger createHash(File file, String algorithm) {
+        try {
+            return createHash(new FileInputStream(file), algorithm)
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(String.format("Failed to create %s hash for file %s.",
+                    algorithm, file.getAbsolutePath()), e.getCause())
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(e)
+        }
+    }
+
+    static BigInteger createHash(InputStream instr, String algorithm) {
+        MessageDigest messageDigest
+        try {
+            messageDigest = createMessageDigest(algorithm)
+            byte[] buffer = new byte[4096]
+            try {
+                while (true) {
+                    int nread = instr.read(buffer)
+                    if (nread < 0) {
+                        break
+                    }
+                    messageDigest.update(buffer, 0, nread)
+                }
+            } finally {
+                instr.close()
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e)
+        }
+        new BigInteger(1, messageDigest.digest())
+    }
+
+    private static MessageDigest createMessageDigest(String algorithm) {
+        try {
+            return MessageDigest.getInstance(algorithm)
+        } catch (NoSuchAlgorithmException e) {
+            throw UncheckedException.throwAsUncheckedException(e)
+        }
     }
 }

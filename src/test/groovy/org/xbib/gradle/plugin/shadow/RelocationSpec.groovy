@@ -13,7 +13,7 @@ class RelocationSpec extends PluginSpecification {
         given:
         buildFile << """
             dependencies {
-               compile 'junit:junit:3.8.2'
+               implementation 'junit:junit:3.8.2'
             }
             
             shadowJar {
@@ -78,7 +78,7 @@ class RelocationSpec extends PluginSpecification {
         given:
         buildFile << """
             dependencies {
-               compile 'junit:junit:3.8.2'
+               implementation 'junit:junit:3.8.2'
             }
             
             // tag::relocateFilter[]
@@ -135,7 +135,7 @@ class RelocationSpec extends PluginSpecification {
         given:
         buildFile << """
             dependencies {
-               compile 'junit:junit:3.8.2'
+               implementation 'junit:junit:3.8.2'
             }
             
             // tag::relocate[]
@@ -183,10 +183,10 @@ class RelocationSpec extends PluginSpecification {
     def "relocate does not drop dependency resources"() {
         given: 'Core project with dependency and resource'
         file('core/build.gradle') << """
-        apply plugin: 'java'
+        apply plugin: 'java-library'
         
         repositories { maven { url "${repo.uri}" } }
-        dependencies { compile 'junit:junit:3.8.2' }
+        dependencies { api 'junit:junit:3.8.2' }
         """.stripIndent()
 
         file('core/src/main/resources/TEST') << 'TEST RESOURCE'
@@ -201,11 +201,11 @@ class RelocationSpec extends PluginSpecification {
 
         and: 'App project with shadow, relocation, and project dependency'
         file('app/build.gradle') << """
-        apply plugin: 'java'
+        apply plugin: 'java-library'
         apply plugin: 'org.xbib.gradle.plugin.shadow'
         
         repositories { maven { url "${repo.uri}" } }
-        dependencies { compile project(':core') }
+        dependencies { api project(':core') }
         
         shadowJar {
           relocate 'core', 'app.core'
@@ -261,7 +261,7 @@ class RelocationSpec extends PluginSpecification {
 
         buildFile << """
             dependencies {
-               compile 'shadow:dep:1.0'
+               implementation 'shadow:dep:1.0'
             }
             
             shadowJar {
@@ -294,16 +294,16 @@ class RelocationSpec extends PluginSpecification {
             repositories {
                 jcenter()
                 maven {
-                    url 'http://repository.mapr.com/nexus/content/groups/mapr-public'
+                    url 'https://repository.mapr.com/nexus/content/groups/mapr-public'
                 }
             }
 
             dependencies {
-                compile 'org.slf4j:slf4j-api:1.7.21'
-                compile group: 'io.netty', name: 'netty-all', version: '4.0.23.Final'
-                compile group: 'com.google.protobuf', name: 'protobuf-java', version: '2.5.0'
-                compile group: 'org.apache.zookeeper', name: 'zookeeper', version: '3.4.6'
-                compile group: 'org.hbase', name: 'asynchbase', version: '1.7.0-mapr-1603'
+                implementation 'org.slf4j:slf4j-api:1.7.21'
+                implementation group: 'io.netty', name: 'netty-all', version: '4.0.23.Final'
+                implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '2.5.0'
+                implementation group: 'org.apache.zookeeper', name: 'zookeeper', version: '3.4.6'
+                implementation group: 'org.hbase', name: 'asynchbase', version: '1.7.0-mapr-1603'
             }
 
             shadowJar {

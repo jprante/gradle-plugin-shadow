@@ -323,7 +323,7 @@ class ShadowCopyAction implements CopyAction {
         private void remapClass(InputStream classInputStream, String path, long lastModified) {
             InputStream is = classInputStream
             ClassReader cr = new ClassReader(is)
-           ClassWriter cw = new ClassWriter(0)
+            ClassWriter cw = new ClassWriter(0)
             ClassVisitor cv = new ClassRemapper(cw, remapper)
             try {
                 cr.accept(cv, ClassReader.EXPAND_FRAMES)

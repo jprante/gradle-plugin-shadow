@@ -1,5 +1,6 @@
 package org.xbib.gradle.plugin.shadow.transformers
 
+import org.xbib.gradle.plugin.shadow.internal.ServiceStream
 import org.xbib.gradle.plugin.shadow.internal.Utils
 import org.xbib.gradle.plugin.shadow.relocation.RelocateClassContext
 import org.gradle.api.file.FileTreeElement
@@ -69,25 +70,6 @@ class ServiceFileTransformer implements Transformer, PatternFilterable {
             os.putNextEntry(entry)
             Utils.copyLarge(stream.toInputStream(), os)
             os.closeEntry()
-        }
-    }
-
-    static class ServiceStream extends ByteArrayOutputStream {
-
-        ServiceStream(){
-            super( 1024 )
-        }
-
-        void append(InputStream is) throws IOException {
-            if (count > 0 && buf[count - 1] != ('\n' as char) && buf[count - 1] != ('\r' as char)) {
-                byte[] newline = '\n'.bytes
-                write(newline, 0, newline.length)
-            }
-            Utils.copyLarge(is, this)
-        }
-
-        InputStream toInputStream() {
-            return new ByteArrayInputStream( buf, 0, count )
         }
     }
 

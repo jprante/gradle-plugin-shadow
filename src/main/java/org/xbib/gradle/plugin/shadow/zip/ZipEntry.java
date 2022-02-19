@@ -711,7 +711,6 @@ public class ZipEntry extends java.util.zip.ZipEntry implements Cloneable {
         }
     }
 
-    /** {@inheritDoc} */
     public Date getLastModifiedDate() {
         return new Date(getTime());
     }

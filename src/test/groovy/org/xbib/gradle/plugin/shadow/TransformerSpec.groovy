@@ -246,8 +246,8 @@ two # NOTE: No newline terminates this line/file'''.stripIndent()
 
         buildFile << """
             dependencies {
-              compile 'shadow:two:1.0'
-              compile files('${escapedPath(one)}')
+              implementation 'shadow:two:1.0'
+              implementation files('${escapedPath(one)}')
             }
             
             shadowJar {
@@ -423,60 +423,6 @@ two # NOTE: No newline terminates this line/file
         assert mf.mainAttributes.getValue('Main-Class') == 'shadow.Main'
         assert mf.mainAttributes.getValue('New-Entry') == 'NEW'
     }
-
-/*    def 'append xml files'() {
-        given:
-        File xml1 = buildJar('xml1.jar').insertFile('properties.xml',
-'''<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-            
-<properties version="1.0">
-   <entry key="key1">val1</entry>
-</properties>
-'''.stripIndent()
-        ).write()
-
-        File xml2 = buildJar('xml2.jar').insertFile('properties.xml',
-'''<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-            
-<properties version="1.0">
-   <entry key="key2">val2</entry>
-</properties>
-'''.stripIndent()
-        ).write()
-
-        buildFile << """
-            import ${XmlAppendingTransformer.name}
-
-            shadowJar {
-               from('${escapedPath(xml1)}')
-               from('${escapedPath(xml2)}')
-            }
-
-            shadowJar {
-               transform(XmlAppendingTransformer) {
-                   resource = 'properties.xml'
-               }
-            }
-        """.stripIndent()
-
-        when:
-        runner.withArguments('shadowJar').build()
-
-        then:
-        assert output.exists()
-
-        and:
-        String text = getJarFileContents(output, 'properties.xml')
-        assert text.replaceAll('\r\n', '\n') ==
-'''<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
-<properties version="1.0">
-  <entry key="key1">val1</entry>
-  <entry key="key2">val2</entry>
-</properties>
-'''.stripIndent()
-    }
-*/
 
     @Issue('SHADOW-82')
     def 'shadow.manifest leaks to jar.manifest'() {
@@ -684,7 +630,7 @@ staticExtensionClasses=com.acme.bar.SomeStaticExtension'''.stripIndent()).write(
             assert props.getProperty('staticExtensionClasses') == 'com.acme.foo.FooStaticExtension,com.acme.bar.SomeStaticExtension'
     }
 
-    private String escapedPath(File file) {
+    private static String escapedPath(File file) {
         file.path.replaceAll('\\\\', '\\\\\\\\')
     }
 }

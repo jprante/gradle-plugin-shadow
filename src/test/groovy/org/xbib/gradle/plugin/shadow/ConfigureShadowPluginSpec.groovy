@@ -13,7 +13,7 @@ class ConfigureShadowPluginSpec extends PluginSpecification {
             tasks.shadowJar.dependsOn tasks.relocateShadowJar
 
             dependencies {
-               compile 'junit:junit:3.8.2'
+               implementation 'junit:junit:3.8.2'
             }
         """.stripIndent()
 

@@ -1,5 +1,6 @@
 package org.xbib.gradle.plugin.shadow.tasks
 
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.internal.file.copy.CopySpecResolver
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.bundling.ZipEntryCompression
@@ -15,6 +16,8 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.Factory
+import org.gradle.api.tasks.util.internal.PatternSets
 import org.xbib.gradle.plugin.shadow.ShadowStats
 import org.xbib.gradle.plugin.shadow.internal.DefaultDependencyFilter
 import org.xbib.gradle.plugin.shadow.internal.DefaultZipCompressor
@@ -56,13 +59,16 @@ class ShadowJar extends Jar implements ShadowSpec {
         relocators = []
         configurations = []
         shadowStats = new ShadowStats()
+        setDuplicatesStrategy(DuplicatesStrategy.INCLUDE)
     }
 
+    @Override
     ShadowJar minimize() {
         minimizeJar = true
         this
     }
 
+    @Override
     ShadowJar minimize(Action<DependencyFilter> c) {
         minimize()
         if (c != null) {
@@ -88,13 +94,14 @@ class ShadowJar extends Jar implements ShadowSpec {
         FileCollection toMinimize = dependencyFilterForMinimize.resolve(configurations)
         UnusedTracker unusedTracker = UnusedTracker.forProject(getProject(), toMinimize)
         CopySpecResolver copySpecResolver = mainSpec.buildRootResolver()
-        PatternSet patternSet = fileResolver.patternSetFactory.create()
+        Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory()
+        PatternSet patternSet = patternSetFactory.create()
         patternSet.setCaseSensitive(copySpecResolver.caseSensitive)
         patternSet.include(copySpecResolver.allIncludes)
         patternSet.includeSpecs(copySpecResolver.allIncludeSpecs)
         patternSet.exclude(copySpecResolver.allExcludes)
         patternSet.excludeSpecs(copySpecResolver.allExcludeSpecs)
-        new ShadowCopyAction(getLogger(), getArchivePath(), getInternalCompressor(), documentationRegistry,
+        new ShadowCopyAction(getLogger(), getArchiveFile().get().getAsFile(), getInternalCompressor(), documentationRegistry,
                 this.getMetadataCharset(), transformers, relocators, patternSet, shadowStats,
                 isPreserveFileTimestamps(), minimizeJar, unusedTracker)
     }
@@ -103,11 +110,11 @@ class ShadowJar extends Jar implements ShadowSpec {
     protected ZipCompressor getInternalCompressor() {
         switch (getEntryCompression()) {
             case ZipEntryCompression.DEFLATED:
-                return new DefaultZipCompressor(isZip64(), ZipOutputStream.DEFLATED);
+                return new DefaultZipCompressor(isZip64(), ZipOutputStream.DEFLATED)
             case ZipEntryCompression.STORED:
-                return new DefaultZipCompressor(isZip64(), ZipOutputStream.STORED);
+                return new DefaultZipCompressor(isZip64(), ZipOutputStream.STORED)
             default:
-                throw new IllegalArgumentException(String.format("unknown compression type %s", entryCompression));
+                throw new IllegalArgumentException(String.format("unknown compression type %s", entryCompression))
         }
     }
 
@@ -364,7 +371,7 @@ class ShadowJar extends Jar implements ShadowSpec {
 
     @Internal
     List<Relocator> getRelocators() {
-        this.relocators
+        return this.relocators
     }
 
     void setRelocators(List<Relocator> relocators) {
@@ -382,7 +389,7 @@ class ShadowJar extends Jar implements ShadowSpec {
 
     @Internal
     DependencyFilter getDependencyFilter() {
-        this.dependencyFilter
+        return this.dependencyFilter
     }
 
     void setDependencyFilter(DependencyFilter filter) {

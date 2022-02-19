@@ -420,7 +420,6 @@ public class ZipOutputStream extends FilterOutputStream {
     }
 
     /**
-     * {@inheritDoc}
      * @throws Zip64RequiredException if the archive's size exceeds 4
      * GByte or there are more than 65535 entries inside the archive
      * and {@link #setUseZip64} is {@link Zip64Mode#Never}.
@@ -652,7 +651,6 @@ public class ZipOutputStream extends FilterOutputStream {
     }
 
     /**
-     * {@inheritDoc}
      * @throws Zip64RequiredException if the entry's uncompressed or
      * compressed size is known to exceed 4 GByte and {@link #setUseZip64}
      * is {@link Zip64Mode#Never}.

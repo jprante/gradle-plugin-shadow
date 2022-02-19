@@ -5,6 +5,7 @@ import org.xbib.gradle.plugin.shadow.zip.ZipOutputStream
 
 interface ZipCompressor extends ArchiveOutputStreamFactory {
 
+    @Override
     ZipOutputStream createArchiveOutputStream(File destination)
 
 }

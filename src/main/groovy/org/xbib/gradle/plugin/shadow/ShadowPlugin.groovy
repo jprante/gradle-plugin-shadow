@@ -10,11 +10,9 @@ class ShadowPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         project.plugins.apply(ShadowBasePlugin)
-
         project.plugins.withType(JavaPlugin) {
             project.plugins.apply(ShadowJavaPlugin)
         }
-
         def rootProject = project.rootProject
         rootProject.plugins.withId('com.gradle.build-scan') {
             rootProject.buildScan.buildFinished {

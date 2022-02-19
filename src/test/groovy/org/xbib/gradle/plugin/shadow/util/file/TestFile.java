@@ -20,11 +20,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestFile extends File {
 
@@ -136,11 +135,8 @@ public class TestFile extends File {
         assertIsFile();
         Properties properties = new Properties();
         try {
-            FileInputStream inStream = new FileInputStream(this);
-            try {
+            try (FileInputStream inStream = new FileInputStream(this)) {
                 properties.load(inStream);
-            } finally {
-                inStream.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -155,11 +151,8 @@ public class TestFile extends File {
     public Manifest getManifest() {
         assertIsFile();
         try {
-            JarFile jarFile = new JarFile(this);
-            try {
+            try (JarFile jarFile = new JarFile(this)) {
                 return jarFile.getManifest();
-            } finally {
-                jarFile.close();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -183,22 +176,22 @@ public class TestFile extends File {
     }
 
     public TestFile assertExists() {
-        assertTrue(String.format("%s does not exist", this), exists());
+        assertTrue(exists(), String.format("%s does not exist", this));
         return this;
     }
 
     public TestFile assertIsFile() {
-        assertTrue(String.format("%s is not a file", this), isFile());
+        assertTrue(isFile(), String.format("%s is not a file", this));
         return this;
     }
 
     public TestFile assertIsDir() {
-        assertTrue(String.format("%s is not a directory", this), isDirectory());
+        assertTrue(isDirectory(), String.format("%s is not a directory", this));
         return this;
     }
 
     public TestFile assertDoesNotExist() {
-        assertFalse(String.format("%s should not exist", this), exists());
+        assertFalse( exists(), String.format("%s should not exist", this));
         return this;
     }
 
@@ -228,25 +221,6 @@ public class TestFile extends File {
         new TestFileHelper(this).setMode(mode);
         return this;
     }
-
-    /**
-     * Asserts that this file contains exactly the given set of descendants.
-     */
-    /*public TestFile assertHasDescendants(String... descendants) {
-        Set<String> actual = new TreeSet<>();
-        assertIsDir();
-        visit(actual, "", this);
-        Set<String> expected = new TreeSet<>(Arrays.asList(descendants));
-
-        Set<String> extras = new TreeSet<String>(actual);
-        extras.removeAll(expected);
-        Set<String> missing = new TreeSet<String>(expected);
-        missing.removeAll(actual);
-
-        assertEquals(String.format("For dir: %s, extra files: %s, missing files: %s, expected: %s", this, extras, missing, expected), expected, actual);
-
-        return this;
-    }*/
 
     private void visit(Set<String> names, String prefix, File file) {
         for (File child : file.listFiles()) {

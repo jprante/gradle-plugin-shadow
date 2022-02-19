@@ -22,8 +22,7 @@ class DefaultZipCompressor implements ZipCompressor {
             zipOutputStream.setMethod(entryCompressionMethod)
             return zipOutputStream
         } catch (Exception e) {
-            String message = String.format("Unable to create ZIP output stream for file %s.", destination)
-            throw new UncheckedIOException(message, e)
+            throw new UncheckedIOException("unable to create ZIP output stream for file " + destination, e)
         }
     }
 }

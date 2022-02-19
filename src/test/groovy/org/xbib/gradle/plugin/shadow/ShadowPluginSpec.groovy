@@ -36,18 +36,18 @@ class ShadowPluginSpec extends PluginSpecification {
         project.plugins.apply(JavaPlugin)
 
         then:
-        ShadowJar shadow = project.tasks.findByName('shadowJar')
+        ShadowJar shadow = project.tasks.findByName('shadowJar') as ShadowJar
         assert shadow
-        assert shadow.baseName == projectName
-        assert shadow.destinationDir == new File(project.buildDir, 'libs')
-        assert shadow.version == version
-        assert shadow.classifier == 'all'
-        assert shadow.extension == 'jar'
+        assert shadow.getProperty('baseName') == projectName
+        assert shadow.getProperty('destinationDir') == new File(project.buildDir, 'libs')
+        assert shadow.getProperty('version') == version
+        assert shadow.getProperty('classifier') == 'all'
+        assert shadow.getProperty('extension') == 'jar'
 
         and:
         Configuration shadowConfig = project.configurations.findByName('shadow')
         assert shadowConfig
-        shadowConfig.artifacts.file.contains(shadow.archivePath)
+        shadowConfig.artifacts.files.contains(shadow.archiveFile.get().getAsFile())
 
     }
 
@@ -78,7 +78,7 @@ class ShadowPluginSpec extends PluginSpecification {
         '''.stripIndent()
 
         buildFile << """
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
 
             // tag::rename[]
             shadowJar {
@@ -113,7 +113,7 @@ class ShadowPluginSpec extends PluginSpecification {
         file('client/build.gradle') << """
             apply plugin: 'java'
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
         """.stripIndent()
 
         file('server/src/main/java/server/Server.java') << """
@@ -129,7 +129,7 @@ class ShadowPluginSpec extends PluginSpecification {
             apply plugin: 'org.xbib.gradle.plugin.shadow'
 
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile project(':client') }
+            dependencies { implementation project(':client') }
 
         """.stripIndent()
 
@@ -164,7 +164,7 @@ class ShadowPluginSpec extends PluginSpecification {
         file('client/build.gradle') << """
             apply plugin: 'java'
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
         """.stripIndent()
 
         file('server/src/main/java/server/Server.java') << """
@@ -178,15 +178,22 @@ class ShadowPluginSpec extends PluginSpecification {
         """.stripIndent()
 
         file('server/build.gradle') << """
-            apply plugin: 'java'
+            apply plugin: 'java-library'
             apply plugin: 'org.xbib.gradle.plugin.shadow'
 
             shadowJar {
                 minimize()
             }
 
+            tasks.withType(org.xbib.gradle.plugin.shadow.tasks.ShadowJar) {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
+            tasks.withType(Jar) {
+                duplicatesStrategy = DuplicatesStrategy.INCLUDE
+            }
+
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile project(':client') }
+            dependencies { implementation project(':client') }
         """.stripIndent()
 
         File serverOutput = file('server/build/libs/server-all.jar')
@@ -221,7 +228,7 @@ class ShadowPluginSpec extends PluginSpecification {
         file('client/build.gradle') << """
             apply plugin: 'java'
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
         """.stripIndent()
 
         file('server/src/main/java/server/Server.java') << """
@@ -240,7 +247,7 @@ class ShadowPluginSpec extends PluginSpecification {
             }
 
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile project(':client') }
+            dependencies { implementation project(':client') }
         """.stripIndent()
 
         File serverOutput = file('server/build/libs/server-all.jar')
@@ -271,7 +278,7 @@ class ShadowPluginSpec extends PluginSpecification {
             apply plugin: 'java'
             apply plugin: 'org.xbib.gradle.plugin.shadow'
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
 
             shadowJar {
                relocate 'junit.framework', 'client.junit.framework'
@@ -291,7 +298,7 @@ class ShadowPluginSpec extends PluginSpecification {
             apply plugin: 'java'
 
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile project(path: ':client', configuration: 'shadow') }
+            dependencies { implementation project(path: ':client', configuration: 'shadow') }
         """.stripIndent()
 
         File serverOutput = file('server/build/libs/server.jar')
@@ -327,7 +334,7 @@ class ShadowPluginSpec extends PluginSpecification {
             apply plugin: 'java'
             apply plugin: 'org.xbib.gradle.plugin.shadow'
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
 
             shadowJar {
                relocate 'junit.framework', 'client.junit.framework'
@@ -348,7 +355,7 @@ class ShadowPluginSpec extends PluginSpecification {
             apply plugin: 'org.xbib.gradle.plugin.shadow'
 
             repositories { maven { url "${repo.uri}" } }
-            dependencies { compile project(path: ':client', configuration: 'shadow') }
+            dependencies { implementation project(path: ':client', configuration: 'shadow') }
         """.stripIndent()
 
         File serverOutput = file('server/build/libs/server-all.jar')
@@ -386,7 +393,7 @@ class ShadowPluginSpec extends PluginSpecification {
         '''.stripIndent()
 
         buildFile << """
-            dependencies { compile 'shadow:a:1.0' }
+            dependencies { implementation 'shadow:a:1.0' }
         """.stripIndent()
 
         when:
@@ -399,7 +406,7 @@ class ShadowPluginSpec extends PluginSpecification {
         doesNotContain(output, ['META-INF/INDEX.LIST', 'META-INF/a.SF', 'META-INF/a.DSA', 'META-INF/a.RSA'])
     }
 
-    def "include runtime configuration by default"() {
+    def "include runtimeOnly configuration by default"() {
         given:
         repo.module('shadow', 'a', '1.0')
                 .insertFile('a.properties', 'a')
@@ -411,7 +418,7 @@ class ShadowPluginSpec extends PluginSpecification {
 
         buildFile << """
             dependencies {
-               runtime 'shadow:a:1.0'
+               runtimeOnly 'shadow:a:1.0'
                shadow 'shadow:b:1.0'
             }
         """.stripIndent()
@@ -447,14 +454,6 @@ class ShadowPluginSpec extends PluginSpecification {
                 .dependsOn('implementation-dep')
                 .publish()
 
-        repo.module('shadow', 'compile', '1.0')
-                .insertFile('compile.properties', 'compile')
-                .publish()
-
-        repo.module('shadow', 'runtime', '1.0')
-                .insertFile('runtime.properties', 'runtime')
-                .publish()
-
         repo.module('shadow', 'runtimeOnly', '1.0')
                 .insertFile('runtimeOnly.properties', 'runtimeOnly')
                 .publish()
@@ -464,8 +463,6 @@ class ShadowPluginSpec extends PluginSpecification {
             dependencies {
                api 'shadow:api:1.0'
                implementation 'shadow:implementation:1.0'
-               compile 'shadow:compile:1.0'
-               runtime 'shadow:runtime:1.0'
                runtimeOnly 'shadow:runtimeOnly:1.0'
             }
         """.stripIndent()
@@ -474,8 +471,10 @@ class ShadowPluginSpec extends PluginSpecification {
         versionRunner.withArguments('shadowJar').build()
 
         then:
-        contains(output, ['api.properties', 'implementation.properties', 'compile.properties',
-                          'runtime.properties', 'runtimeOnly.properties', 'implementation-dep.properties'])
+        contains(output, ['api.properties',
+                          'implementation.properties',
+                          'runtimeOnly.properties',
+                          'implementation-dep.properties'])
     }
 
     def "doesn't include compileOnly configuration by default"() {
@@ -490,7 +489,7 @@ class ShadowPluginSpec extends PluginSpecification {
 
         buildFile << """
             dependencies {
-               runtime 'shadow:a:1.0'
+               runtimeOnly 'shadow:a:1.0'
                compileOnly 'shadow:b:1.0'
             }
         """.stripIndent()
@@ -517,8 +516,8 @@ class ShadowPluginSpec extends PluginSpecification {
 
         buildFile << """
             dependencies {
-               runtime 'shadow:a:1.0'
-               runtime 'shadow:b:1.0'
+               runtimeOnly 'shadow:a:1.0'
+               runtimeOnly 'shadow:b:1.0'
             }
         """.stripIndent()
 
@@ -534,7 +533,7 @@ class ShadowPluginSpec extends PluginSpecification {
         given:
 
         buildFile << """
-            dependencies { compile 'junit:junit:3.8.2' }
+            dependencies { implementation 'junit:junit:3.8.2' }
         """.stripIndent()
 
         when:
@@ -602,27 +601,6 @@ class ShadowPluginSpec extends PluginSpecification {
         Attributes attributes = jar.manifest.getMainAttributes()
         String classpath = attributes.getValue('Class-Path')
         assert classpath == 'junit-3.8.2.jar'
-
-    }
-
-    @Issue('SHADOW-256')
-    def "allow configuration of non-maven projects with uploads"() {
-        given:
-        buildFile << """
-            configurations.each { configuration ->
-              def upload = project.getTasks().getByName(configuration.getUploadTaskName())
-              upload.repositories.ivy {
-                layout 'ivy'
-                url "\$buildDir/repo"
-              }
-            }
-        """
-
-        when:
-        runner.withArguments('shadowJar').build()
-
-        then:
-        assert output.exists()
     }
 
     @Issue('SHADOW-203')
@@ -644,9 +622,5 @@ class ShadowPluginSpec extends PluginSpecification {
         then:
         assert output.exists()
 
-    }
-
-    private String escapedPath(File file) {
-        file.path.replaceAll('\\\\', '\\\\\\\\')
     }
 }
